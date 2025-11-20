@@ -1,0 +1,59 @@
+# Git
+.git
+.gitignore
+
+# Node
+node_modules
+npm-debug.log
+yarn-error.log
+.npm
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info
+dist
+build
+.pytest_cache
+.coverage
+htmlcov
+
+# IDEs
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Documentation
+README.md
+*.md
+
+# CI/CD
+.github
+
+# Test files
+test_*.py
+*.test.js
+*.test.jsx
+*.spec.js
+*.spec.jsx
+
+# Databases (local only)
+*.db
+*.sqlite
+*.sqlite3
+test.db

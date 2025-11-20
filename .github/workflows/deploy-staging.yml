@@ -6,33 +6,65 @@ on:
 
 jobs:
   deploy:
-    name: Deploy to Railway (Staging)
+    name: Deploy to AWS EC2 (Staging)
     runs-on: ubuntu-latest
     environment: staging
-    
+
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Install Railway CLI
-      run: npm install -g @railway/cli
-
-    - name: Deploy Backend to Railway
-      env:
-        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN_STAGING }}
+    - name: Setup SSH
       run: |
-        railway up --service backend --environment staging
-      working-directory: ./backend
+        mkdir -p ~/.ssh
+        echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        ssh-keyscan -H ${{ secrets.EC2_HOST_STAGING }} >> ~/.ssh/known_hosts
 
-    - name: Deploy Frontend to Railway
-      env:
-        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN_STAGING }}
+    - name: Create .env file
       run: |
-        railway up --service frontend --environment staging
-      working-directory: ./frontend
+        cat > .env.production << EOF
+        DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+        IMAGE_TAG=staging
+        POSTGRES_USER=devops_user
+        POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+        POSTGRES_DB=devops_chat
+        GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+        OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}
+        JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+        CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}
+        EOF
 
-    - name: Notify deployment
+    - name: Copy files to EC2
+      run: |
+        scp -i ~/.ssh/deploy_key docker-compose.prod.yml ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST_STAGING }}:~/docker-compose.yml
+        scp -i ~/.ssh/deploy_key .env.production ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST_STAGING }}:~/.env
+
+    - name: Deploy on EC2
+      run: |
+        ssh -i ~/.ssh/deploy_key ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST_STAGING }} << 'EOF'
+          set -e
+          echo "Pulling latest images..."
+          sudo docker compose pull
+          
+          echo "Stopping old containers..."
+          sudo docker compose down
+          
+          echo "Starting new containers..."
+          sudo docker compose up -d
+          
+          echo "Cleaning up old images..."
+          sudo docker image prune -af
+          
+          echo "Checking status..."
+          sudo docker compose ps
+        EOF
+
+    - name: Verify deployment
       run: |
         echo "✅ Deployment to staging completed successfully!"
-        echo "Backend: Railway staging environment"
-        echo "Frontend: Railway staging environment"
+        echo "Server: ${{ secrets.EC2_HOST_STAGING }}"
+        echo "Backend: http://${{ secrets.EC2_HOST_STAGING }}:8000"
+        echo "Frontend: http://${{ secrets.EC2_HOST_STAGING }}"
+        echo "Environment: AWS EC2 Staging"

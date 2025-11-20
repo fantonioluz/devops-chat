@@ -1,4 +1,46 @@
-# DevOps Learning Chat v2.0 🚀
+# 🚀 DevOps Learning Chat
+
+Aplicação educacional de chat sobre DevOps com autenticação e múltiplos modelos de IA.
+
+## 📦 Tecnologias
+
+- **Backend:** FastAPI + PostgreSQL
+- **Frontend:** React + Vite
+- **Deploy:** AWS EC2 com Docker Compose
+- **CI/CD:** GitHub Actions
+
+## 🔧 Setup Rápido
+
+```bash
+# Clone o repositório
+git clone https://github.com/fantonioluz/devops-chat.git
+cd devops-chat
+
+# Configure as variáveis de ambiente
+cp .env.example .env
+# Edite o .env com suas chaves
+
+# Suba os containers
+docker compose up --build
+```
+
+**Acessar:**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+- Docs: http://localhost:8000/docs
+
+## 📚 Documentação Completa
+
+- **[AWS EC2 Setup](./AWS_EC2_SETUP.md)** - Deploy em produção na AWS
+- **[Setup Local](./SETUP_GUIA.md)** - Desenvolvimento local
+
+## 🔄 CI/CD
+
+Workflows automáticos configurados:
+- ✅ **Tests** - Testes automatizados
+- ✅ **Build** - Build do Docker Compose  
+- ✅ **Deploy Staging** - Deploy automático na EC2 (branch staging)
+- ✅ **Deploy Production** - Deploy automático na EC2 (branch main) v2.0 🚀
 
 Chat educacional sobre DevOps com Google OAuth, múltiplos modelos de IA (Gemini + OpenRouter) e histórico de conversas salvo em PostgreSQL.
 

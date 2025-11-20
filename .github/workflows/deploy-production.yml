@@ -1,0 +1,48 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    name: Deploy to Railway (Production)
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Railway CLI
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN_PRODUCTION }}
+      run: npm install -g @railway/cli
+
+    - name: Deploy Backend to Railway
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN_PRODUCTION }}
+      run: |
+        railway up --service backend --environment production
+      working-directory: ./backend
+
+    - name: Deploy Frontend to Railway
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN_PRODUCTION }}
+      run: |
+        railway up --service frontend --environment production
+      working-directory: ./frontend
+
+    - name: Create Release Tag
+      run: |
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        TAG_NAME="v$(date +'%Y.%m.%d')-${{ github.run_number }}"
+        git tag $TAG_NAME
+        git push origin $TAG_NAME
+
+    - name: Notify deployment
+      run: |
+        echo "✅ Deployment to production completed successfully!"
+        echo "Backend: Railway production environment"
+        echo "Frontend: Railway production environment"

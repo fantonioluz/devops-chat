@@ -1,14 +1,17 @@
 name: Deploy to Staging
 
+# Desabilitado temporariamente - Configure o Railway primeiro
+# Remova os comentários quando o projeto estiver criado no Railway
 on:
-  push:
-    branches: [ staging ]
+  workflow_dispatch: # Apenas manual por enquanto
+  # push:
+  #   branches: [ staging ]
 
 jobs:
   deploy:
     name: Deploy to Railway (Staging)
     runs-on: ubuntu-latest
-    environment: staging
+    # environment: staging # Crie este environment no GitHub Settings
     
     steps:
     - name: Checkout code
@@ -17,22 +20,14 @@ jobs:
     - name: Install Railway CLI
       run: npm install -g @railway/cli
 
-    - name: Deploy Backend to Railway
+    - name: Deploy to Railway (Docker Compose)
       env:
         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN_STAGING }}
       run: |
-        railway up --service backend --environment staging
-      working-directory: ./backend
-
-    - name: Deploy Frontend to Railway
-      env:
-        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN_STAGING }}
-      run: |
-        railway up --service frontend --environment staging
-      working-directory: ./frontend
+        railway up --environment staging
 
     - name: Notify deployment
       run: |
         echo "✅ Deployment to staging completed successfully!"
-        echo "Backend: Railway staging environment"
-        echo "Frontend: Railway staging environment"
+        echo "Services: Backend + Frontend + PostgreSQL (Docker Compose)"
+        echo "Environment: Railway staging"

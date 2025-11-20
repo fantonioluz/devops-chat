@@ -1,0 +1,20 @@
+# Railway configuration for full-stack deployment with Docker Compose
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "docker-compose.yml"
+
+[deploy]
+startCommand = "docker-compose up"
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+# Expose ports
+[[deploy.services]]
+name = "frontend"
+port = 3000
+
+[[deploy.services]]
+name = "backend"
+port = 8000

@@ -1,12 +1,12 @@
-name: Build and Push Docker Images
+name: Build Docker Images
 
 on:
   push:
     branches: [ staging, main ]
 
 jobs:
-  build-backend:
-    name: Build Backend Image
+  build:
+    name: Test Docker Compose Build
     runs-on: ubuntu-latest
     
     steps:
@@ -16,57 +16,21 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: Login to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+    - name: Create .env for build
+      run: |
+        echo "GEMINI_API_KEY=test" >> .env
+        echo "OPENROUTER_API_KEY=test" >> .env
+        echo "JWT_SECRET_KEY=test" >> .env
+        echo "VITE_API_URL=http://localhost:8000" >> .env
+        echo "VITE_GOOGLE_CLIENT_ID=test" >> .env
 
-    - name: Extract branch name
-      shell: bash
-      run: echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
-      id: extract_branch
+    - name: Build Docker Compose
+      run: docker-compose build
 
-    - name: Build and push Backend
-      uses: docker/build-push-action@v5
-      with:
-        context: ./backend
-        push: true
-        tags: |
-          ${{ secrets.DOCKER_USERNAME }}/devops-chat-backend:${{ steps.extract_branch.outputs.branch }}
-          ${{ secrets.DOCKER_USERNAME }}/devops-chat-backend:${{ github.sha }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+    - name: Verify images
+      run: docker images
 
-  build-frontend:
-    name: Build Frontend Image
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-
-    - name: Login to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-
-    - name: Extract branch name
-      shell: bash
-      run: echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
-      id: extract_branch
-
-    - name: Build and push Frontend
-      uses: docker/build-push-action@v5
-      with:
-        context: ./frontend
-        push: true
-        tags: |
-          ${{ secrets.DOCKER_USERNAME }}/devops-chat-frontend:${{ steps.extract_branch.outputs.branch }}
-          ${{ secrets.DOCKER_USERNAME }}/devops-chat-frontend:${{ github.sha }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+    - name: Build successful
+      run: |
+        echo "✅ Docker Compose build completed successfully!"
+        echo "All services built: backend, frontend, db"
